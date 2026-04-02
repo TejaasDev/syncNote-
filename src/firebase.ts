@@ -10,7 +10,30 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const googleProvider = new GoogleAuthProvider();
 
 // Auth Helpers
-export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result;
+  } catch (error: any) {
+    console.error('Firebase Auth Error:', error);
+    
+    // Notify the user about the error to help with debugging
+    if (error.code === 'auth/popup-blocked') {
+      alert('The sign-in popup was blocked by your browser. Please allow popups for this site.');
+      console.warn('Popup blocked, retrying with redirect...');
+      const { signInWithRedirect } = await import('firebase/auth');
+      return await signInWithRedirect(auth, googleProvider);
+    } else if (error.code === 'auth/operation-not-allowed') {
+      alert('Google Sign-In is not enabled in your Firebase Console. Please go to Authentication > Sign-in method and enable Google.');
+    } else if (error.code === 'auth/unauthorized-domain') {
+      alert('This domain is not authorized for authentication. Please add it (e.g. localhost) in the Firebase Console under Authentication > Settings > Authorized domains.');
+    } else {
+      alert(`Firebase Auth Error (${error.code}): ${error.message}`);
+    }
+    
+    throw error;
+  }
+};
 export const logout = () => signOut(auth);
 
 // Firestore Error Handling Spec

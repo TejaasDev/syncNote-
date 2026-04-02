@@ -18,19 +18,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setUser(user);
-      if (user) {
-        const userDoc = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(userDoc);
-        if (!docSnap.exists()) {
-          await setDoc(userDoc, {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName || 'Anonymous',
-            photoURL: user.photoURL || '',
-            theme: 'light'
-          });
+      try {
+        setUser(user);
+        if (user) {
+          const userDoc = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(userDoc);
+          if (!docSnap.exists()) {
+            await setDoc(userDoc, {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName || 'Anonymous',
+              photoURL: user.photoURL || '',
+              theme: 'light'
+            });
+          }
         }
+      } catch (err) {
+        console.error('Error in onAuthStateChanged:', err);
       }
     });
     return () => unsubscribe();

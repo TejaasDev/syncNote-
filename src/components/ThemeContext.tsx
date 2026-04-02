@@ -14,26 +14,33 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>('light');
 
-  useEffect(() => {
+    let unsubscribeDoc: (() => void) | undefined;
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      // Clean up previous doc listener if user changes
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+        unsubscribeDoc = undefined;
+      }
+
       if (user) {
         const userDoc = doc(db, 'users', user.uid);
-        const unsubscribeDoc = onSnapshot(userDoc, (docSnap) => {
+        unsubscribeDoc = onSnapshot(userDoc, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
             if (data.theme) {
               setThemeState(data.theme);
             }
           }
-        });
-        return () => unsubscribeDoc();
+        }, (err) => console.error('Theme listner error:', err));
       } else {
         setThemeState('light');
       }
     });
 
-    return () => unsubscribeAuth();
-  }, []);
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDoc) unsubscribeDoc();
+    };
 
   useEffect(() => {
     const root = window.document.documentElement;
