@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID." },
+        "email": { "type": "string", "format": "email", "description": "User email address." },
+        "displayName": { "type": "string", "description": "User display name." },
+        "photoURL": { "type": "string", "format": "uri", "description": "User profile picture URL." },
+        "theme": { "type": "string", "enum": ["light", "dark", "blue", "green", "purple"], "description": "User's preferred theme." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Note": {
+      "title": "Collaborative Note",
+      "description": "A rich text note that can be shared and edited in real-time.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique note ID." },
+        "title": { "type": "string", "description": "Note title." },
+        "content": { "type": "string", "description": "Rich text content (HTML)." },
+        "ownerId": { "type": "string", "description": "UID of the note creator." },
+        "collaborators": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs with access." },
+        "isPublic": { "type": "boolean", "description": "Whether anyone with the link can edit." },
+        "lastEditedBy": { "type": "string", "description": "UID of the last editor." },
+        "lastEditedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last edit." }
+      },
+      "required": ["title", "ownerId"]
+    },
+    "TodoList": {
+      "title": "Collaborative To-Do List",
+      "description": "A list of tasks that can be shared and edited in real-time.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique list ID." },
+        "title": { "type": "string", "description": "List title." },
+        "ownerId": { "type": "string", "description": "UID of the list creator." },
+        "collaborators": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs with access." },
+        "isPublic": { "type": "boolean", "description": "Whether anyone with the link can edit." },
+        "lastEditedBy": { "type": "string", "description": "UID of the last editor." },
+        "lastEditedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last edit." },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" },
+              "completed": { "type": "boolean" },
+              "priority": { "type": "string", "enum": ["low", "medium", "high"] }
+            },
+            "required": ["id", "text", "completed"]
+          }
+        }
+      },
+      "required": ["title", "ownerId"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "User profiles." },
+    "/notes/{noteId}": { "schema": "Note", "description": "Collaborative notes." },
+    "/todoLists/{listId}": { "schema": "TodoList", "description": "Collaborative to-do lists." }
+  }
+}
